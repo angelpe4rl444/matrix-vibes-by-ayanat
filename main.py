@@ -23,17 +23,28 @@ def reduce_to_arcane(n: int) -> int:
         n = sum(int(digit) for digit in str(n))
     return n
 
+@app.get("/")
+async def root():
+    return {"message": "AuraCode API работает!"}
+
 @app.post("/api/calculate")
 async def calculate_matrix(data: UserData):
-    try:
-        parts = data.birthdate.split("-")
-        year_str, month_str, day_str = parts[0], parts[1], parts[2]
-    except Exception:
-        day_str, month_str, year_str = "22", "09", "2010"
-
-    day = int(day_str)
-    month = int(month_str)
-    year = int(year_str)
+    day, month, year = 22, 9, 2010
+    
+    if data.birthdate:
+        try:
+            parts = data.birthdate.split("-")
+            if len(parts) == 3:
+                if len(parts[0]) == 4:
+                    year = int(parts[0])
+                    month = int(parts[1])
+                    day = int(parts[2])
+                else:
+                    day = int(parts[0])
+                    month = int(parts[1])
+                    year = int(parts[2])
+        except Exception:
+            pass
 
     a = reduce_to_arcane(day)
     b = reduce_to_arcane(month)
@@ -54,10 +65,5 @@ async def calculate_matrix(data: UserData):
             "pointD": d
         }
     }
-
-
-
-
-
 
                   
