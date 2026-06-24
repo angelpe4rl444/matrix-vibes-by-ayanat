@@ -6,7 +6,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -23,7 +23,6 @@ def reduce_to_arcane(n: int) -> int:
         n = sum(int(digit) for digit in str(n))
     return n
 
-@post_route = "/api/calculate"  
 @app.post("/api/calculate")
 async def calculate_matrix(data: UserData):
     try:
