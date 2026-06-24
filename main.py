@@ -6,7 +6,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -16,47 +16,45 @@ class UserData(BaseModel):
     name: str
     birthdate: str
 
-def reduce_number(num: int) -> int:
-    while num > 22:
-        num = sum(int(digit) for digit in str(num))
-    return num
+def reduce_to_arcane(n: int) -> int:
+    if n == 0:
+        return 22
+    while n > 22:
+        n = sum(int(digit) for digit in str(n))
+    return n
 
+@post_route = "/api/calculate"  
 @app.post("/api/calculate")
 async def calculate_matrix(data: UserData):
     try:
         parts = data.birthdate.split("-")
-        year = int(parts[0])
-        month = int(parts[1])
-        day = int(parts[2])
+        year_str, month_str, day_str = parts[0], parts[1], parts[2]
     except Exception:
-        return {"error": "Неверный формат даты"}
+        day_str, month_str, year_str = "22", "09", "2010"
 
-    point_A = reduce_number(day)
-    point_B = reduce_number(month)
+    day = int(day_str)
+    month = int(month_str)
+    year = int(year_str)
+
+    a = reduce_to_arcane(day)
+    b = reduce_to_arcane(month)
     
-    year_sum = sum(int(digit) for digit in str(year))
-    point_V = reduce_number(year_sum)
+    year_sum = sum(int(d) for d in str(year))
+    v = reduce_to_arcane(year_sum)
     
-    point_G = reduce_number(point_A + point_B + point_V)
-    point_D = reduce_number(point_A + point_B + point_V + point_G)
+    g = reduce_to_arcane(a + b + v)
+    d = reduce_to_arcane(a + b + v + g)
 
     return {
         "status": "success",
-        "name": data.name,
         "matrix": {
-            "pointA": point_A,
-            "pointB": point_B,
-            "pointV": point_V,
-            "pointG": point_G,
-            "pointD": point_D
+            "pointA": a,
+            "pointB": b,
+            "pointV": v,
+            "pointG": g,
+            "pointD": d
         }
     }
-
-if __name__ == "__main__":
-    import uvicorn
-    import os
-    port = int(os.environ.get("PORT", 10000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
 
 
 
