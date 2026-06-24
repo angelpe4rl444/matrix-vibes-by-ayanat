@@ -1,9 +1,8 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from datetime import date
 
-app = FastAPI(title="AuraMatrix API", version="1.0.0")
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
@@ -12,6 +11,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 class UserData(BaseModel):
     name: str
     birthdate: str
@@ -22,43 +22,41 @@ def reduce_number(num: int) -> int:
     return num
 
 @app.post("/api/calculate")
-def calculate_matrix(user: UserDate):
+async def calculate_matrix(data: UserData):
     try:
-        parsed_date = date.fromisoformat(user.birthdate)
-        date = parsed_date.day
-        month = parsed_date.month
-        year = parsed_date.year
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Неверный формат даты. Используйте YYYY-MM-DD")
+        parts = data.birthdate.split("-")
+        year = int(parts[0])
+        month = int(parts[1])
+        day = int(parts[2])
+    except Exception:
+        return {"error": "Неверный формат даты"}
+
     point_A = reduce_number(day)
     point_B = reduce_number(month)
-
+    
     year_sum = sum(int(digit) for digit in str(year))
     point_V = reduce_number(year_sum)
-
+    
     point_G = reduce_number(point_A + point_B + point_V)
     point_D = reduce_number(point_A + point_B + point_V + point_G)
 
     return {
         "status": "success",
-        "meta": {
-            "name": user.name,
-            "birthdate": f"{day:02d}.{month:02d}.{year}"
-            },
-            "matrix": {
-                "pointA": point_A,
-                "pointB": point_B,
-                "pointV": point_V,
-                "pointG": point_G,
-                "pointD": point_D
-                }
+        "name": data.name,
+        "matrix": {
+            "pointA": point_A,
+            "pointB": point_B,
+            "pointV": point_V,
+            "pointG": point_G,
+            "pointD": point_D
         }
+    }
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app",
-host="127.0.0.1", port=8000,
-reload=True)
-                
+    import os
+    port = int(os.environ.get("PORT", 10000))
+    uvicorn.run(app, host="0.0.0.0", port=port)    
             
 
 
